@@ -21,14 +21,27 @@ const emotionColors: Record<string, string> = {
   tired: 'text-slate-600 dark:text-slate-400',
   stressed: 'text-red-600 dark:text-red-500',
   neutral: 'text-muted-foreground',
+  angry: 'text-red-700 dark:text-red-500',
+  frustrated: 'text-orange-700 dark:text-orange-500',
+  grateful: 'text-green-600 dark:text-green-500',
+  hopeful: 'text-sky-600 dark:text-sky-400',
+  lonely: 'text-violet-600 dark:text-violet-400',
+  overwhelmed: 'text-rose-600 dark:text-rose-500',
 }
 
 const emotionEmojis: Record<string, string> = {
   happy: '😊', sad: '😢', anxious: '😰', calm: '😌',
   excited: '🤩', tired: '😴', stressed: '😫', neutral: '😐',
+  angry: '😠', frustrated: '😤', grateful: '🙏', hopeful: '🌟',
+  lonely: '🥺', overwhelmed: '🌊',
 }
 
-const EMOTIONS: Emotion[] = ['happy', 'calm', 'excited', 'neutral', 'anxious', 'tired', 'stressed', 'sad']
+const EMOTIONS: Emotion[] = [
+  'happy', 'calm', 'excited', 'grateful',
+  'hopeful', 'neutral', 'tired', 'lonely',
+  'anxious', 'frustrated', 'stressed', 'overwhelmed',
+  'sad', 'angry',
+]
 
 const DAILY_PROMPTS = [
   'What made you smile today?',

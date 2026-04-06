@@ -3,7 +3,7 @@ import type { MoodEntry } from './supabase'
 import { generateSummaryFromEntries } from './summarization'
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
-const MODEL = 'gemini-1.5-flash'
+const MODEL = 'gemini-2.0-flash-lite'
 const BASE = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`
 
 type GContent = { role: 'user' | 'model'; parts: [{ text: string }] }
@@ -12,6 +12,7 @@ async function callGemini(
   contents: GContent[],
   systemInstruction?: string,
   temperature = 0.4,
+  retries = 3,
 ): Promise<string> {
   if (!API_KEY) throw new Error('No Gemini API key configured')
 
@@ -23,19 +24,30 @@ async function callGemini(
     body.systemInstruction = { parts: [{ text: systemInstruction }] }
   }
 
-  const res = await fetch(`${BASE}?key=${API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const res = await fetch(`${BASE}?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(`Gemini ${res.status}: ${err?.error?.message ?? res.statusText}`)
+    if (res.status === 429) {
+      // Rate limited — wait then retry
+      const wait = 1500 * (attempt + 1)
+      await new Promise(r => setTimeout(r, wait))
+      continue
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(`Gemini ${res.status}: ${err?.error?.message ?? res.statusText}`)
+    }
+
+    const data = await res.json()
+    return data.candidates[0].content.parts[0].text as string
   }
 
-  const data = await res.json()
-  return data.candidates[0].content.parts[0].text as string
+  throw new Error('Gemini rate limit: too many requests')
 }
 
 // ── Emotion Analysis ──────────────────────────────────────────────────────────
